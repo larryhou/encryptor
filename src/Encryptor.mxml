@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009"
+					   xmlns:s="library://ns.adobe.com/flex/spark"
+					   xmlns:mx="library://ns.adobe.com/flex/mx"
+					   width="400" height="130" showStatusBar="false"
+					   creationComplete="appReadyHandler(event)">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<mx:ProgressBar id="progress" left="10" right="10" top="10" label="PROGRESS: 0%" maximum="100"
+					minimum="0" mode="manual" />
+	<s:Label y="83" left="10" enabled="false" fontSize="15" text="FAIL:"/>
+	<s:Label y="83" left="162" enabled="false" fontSize="15" text="SUCCESS:"/>
+	<s:Label id="fail" y="83" left="57" width="71" fontSize="15" text="0"/>
+	<s:Label id="success" y="83" left="249" width="140" fontSize="15" text="0"/>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.greensock.TweenLite;
+			import com.larrio.dump.SWFile;
+			import com.larrio.dump.encrypt.FileEncryptor;
+			
+			import mx.events.FlexEvent;
+			
+			private var _data:Object;
+			
+			
+			/* listen to user dragging */
+			protected function appReadyHandler(e:FlexEvent):void
+			{
+				addEventListener(NativeDragEvent.NATIVE_DRAG_ENTER,dragEnterHandler);
+				addEventListener(NativeDragEvent.NATIVE_DRAG_DROP, dragDropHandler);		
+			}
+			
+			/* 拖进处理 */
+			private function dragEnterHandler(event:NativeDragEvent):void
+			{
+				if (!event.clipboard.hasFormat(ClipboardFormats.FILE_LIST_FORMAT)) return;
+				
+				NativeDragManager.acceptDragDrop(this);
+			}
+			
+			/* 放开鼠标处理 */
+			private function dragDropHandler(event:NativeDragEvent):void
+			{
+				var list:Array = event.clipboard.getData(ClipboardFormats.FILE_LIST_FORMAT) as Array;
+				
+				var reg:RegExp = /swf$/i;
+				var stream:FileStream = new FileStream();
+				
+				var bytes:ByteArray;
+				var queue:Vector.<FileItem> = new Vector.<FileItem>();
+				
+				for each(var file:File in list)
+				{
+					if(reg.test(file.extension))
+					{
+						stream.open(file,FileMode.READ);
+						bytes = new ByteArray();
+						
+						stream.readBytes(bytes);
+						stream.close();
+						
+						queue.push(new FileItem(file, bytes));
+					}
+				}
+				
+				_data = {value: 0};
+				
+				goto(0, false);
+				fail.text = success.text = "0";
+				
+				var flag:Boolean, i:int;
+				var length:uint = queue.length;
+				var results:Vector.<FileItem> = new Vector.<FileItem>();
+				for (i = 0; i < length; i++)
+				{
+					flag = true;
+					
+					try
+					{
+						queue[i].swf = new SWFile(queue[i].bytes);
+					}
+					catch (err:Error)
+					{
+						flag = false;
+					}
+					
+					goto(100 * 0.4 * (i + 1) / length);
+					
+					if (flag)
+					{
+						results.push(queue[i]);
+						success.text = results.length.toString();
+					}
+					else
+					{
+						fail.text = (i + 1 - results.length).toString()
+					}
+				}
+				
+				var item:FileItem;
+				var encryptor:FileEncryptor = new FileEncryptor();
+				for (i = 0; i < results.length; i++ )
+				{
+					item = results[i];
+					encryptor.addFile(item.swf);
+				}
+				
+				var settings:XML = encryptor.encrypt();
+				goto(60);
+				
+				var root:String = File.desktopDirectory.nativePath + "/encrypt/";
+				
+				stream = new FileStream();
+				for (i = 0; i < length; i++)
+				{
+					item = results[i];
+					stream.open(new File(root + item.file.name + ".swf"), FileMode.WRITE);
+					stream.writeBytes(item.swf.repack());
+					goto(60 + 100 * 0.4 * (i + 1) / length);
+					stream.close();
+				}
+				
+				stream.open(new File(root + "settings.xml"), FileMode.WRITE);
+				stream.writeMultiByte(settings.toXMLString(), "utf-8");
+				stream.close();
+			}
+			
+			private function goto(percent:Number, tween:Boolean = true):void
+			{
+				trace(percent);
+				var callback:Function = function():void
+				{
+					progress.setProgress(_data.value, 100);
+					progress.label = "PROGRESS: " + (_data.value >> 0) + "%";
+				};
+				
+				if (tween)
+				{
+					TweenLite.killTweensOf(_data);
+					TweenLite.to(_data, 0.3, {value: percent, onUpdate:callback});
+				}
+				else
+				{
+					_data.value = percent;
+					callback.call();
+				}
+			}
+			
+		]]>
+	</fx:Script>
+</s:WindowedApplication>
