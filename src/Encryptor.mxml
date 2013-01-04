@@ -116,7 +116,7 @@
 				for (i = 0; i < length; i++)
 				{
 					item = results[i];
-					stream.open(new File(root + item.file.name + ".swf"), FileMode.WRITE);
+					stream.open(new File(root + item.file.name), FileMode.WRITE);
 					stream.writeBytes(item.swf.repack());
 					goto(60 + 100 * 0.4 * (i + 1) / length);
 					stream.close();
