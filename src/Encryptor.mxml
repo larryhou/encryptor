@@ -129,7 +129,6 @@
 			
 			private function goto(percent:Number, tween:Boolean = true):void
 			{
-				trace(percent);
 				var callback:Function = function():void
 				{
 					progress.setProgress(_data.value, 100);
