@@ -1,0 +1,4 @@
+encryptor
+=========
+
+SWF code encryptor
