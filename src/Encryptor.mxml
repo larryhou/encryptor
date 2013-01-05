@@ -113,6 +113,9 @@
 				var root:String = File.desktopDirectory.nativePath + "/encrypt/";
 				
 				stream = new FileStream();
+				
+				length = results.length;
+				if (length == 0) goto(100);
 				for (i = 0; i < length; i++)
 				{
 					item = results[i];
