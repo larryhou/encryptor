@@ -77,14 +77,14 @@
 				{
 					flag = true;
 					
-//					try
-//					{
+					try
+					{
 						queue[i].swf = new SWFile(queue[i].bytes);
-//					}
-//					catch (err:Error)
-//					{
-//						flag = false;
-//					}
+					}
+					catch (err:Error)
+					{
+						flag = false;
+					}
 					
 					goto(100 * 0.4 * (i + 1) / length);
 					
