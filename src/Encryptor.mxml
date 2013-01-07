@@ -17,20 +17,41 @@
 	<fx:Script>
 		<![CDATA[
 			import com.greensock.TweenLite;
-			import com.larrio.dump.SWFile;
-			import com.larrio.dump.encrypt.FileEncryptor;
 			
 			import mx.events.FlexEvent;
 			
 			private var _data:Object;
+			private var _wrapper:IWrapper;
+			
+			[Embed(source="../bin/wrapper.swf", mimeType="application/octet-stream")]
+			private var _source:Class;
 			
 			
 			/* listen to user dragging */
 			protected function appReadyHandler(e:FlexEvent):void
 			{
+				var loader:Loader = new Loader();
+				loader.contentLoaderInfo.addEventListener(Event.COMPLETE, completeHandler);
+				
+				var context:LoaderContext = new LoaderContext();
+				context.applicationDomain = new ApplicationDomain(ApplicationDomain.currentDomain);
+				context.allowCodeImport = true;
+				
+				var bytes:ByteArray = new _source() as ByteArray;
+				loader.loadBytes(bytes, context);
+				
 				addEventListener(NativeDragEvent.NATIVE_DRAG_ENTER,dragEnterHandler);
 				addEventListener(NativeDragEvent.NATIVE_DRAG_DROP, dragDropHandler);		
 			}
+			
+			private function completeHandler(event:Event):void
+			{
+				// TODO Auto-generated method stub
+				var loaderInfo:LoaderInfo = event.currentTarget as LoaderInfo;
+				
+				_wrapper = loaderInfo.content as IWrapper;
+			}
+
 			
 			/* 拖进处理 */
 			private function dragEnterHandler(event:NativeDragEvent):void
@@ -43,7 +64,11 @@
 			/* 放开鼠标处理 */
 			private function dragDropHandler(event:NativeDragEvent):void
 			{
+				if (!_wrapper) return;
+				
 				var list:Array = event.clipboard.getData(ClipboardFormats.FILE_LIST_FORMAT) as Array;
+				
+				_wrapper.reset();
 				
 				var reg:RegExp = /swf$/i;
 				var stream:FileStream = new FileStream();
@@ -79,7 +104,7 @@
 					
 					try
 					{
-						queue[i].swf = new SWFile(queue[i].bytes);
+						_wrapper.addFile(queue[i]);
 					}
 					catch (err:Error)
 					{
@@ -99,15 +124,7 @@
 					}
 				}
 				
-				var item:FileItem;
-				var encryptor:FileEncryptor = new FileEncryptor();
-				for (i = 0; i < results.length; i++ )
-				{
-					item = results[i];
-					encryptor.addFile(item.swf);
-				}
-				
-				var settings:XML = encryptor.encrypt();
+				var settings:XML = _wrapper.encrypt();
 				goto(60);
 				
 				var root:String = File.desktopDirectory.nativePath + "/encrypt/";
@@ -116,11 +133,13 @@
 				
 				length = results.length;
 				if (length == 0) goto(100);
+				
+				var item:FileItem;
 				for (i = 0; i < length; i++)
 				{
 					item = results[i];
 					stream.open(new File(root + item.file.name), FileMode.WRITE);
-					stream.writeBytes(item.swf.repack());
+					stream.writeBytes(_wrapper.repack(item));
 					goto(60 + 100 * 0.4 * (i + 1) / length);
 					stream.close();
 				}
