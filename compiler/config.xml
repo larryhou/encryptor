@@ -7,6 +7,7 @@
 	<compiler>
 		<!--是否使用严格语法模式编译-->
 		<strict>true</strict>
+		<debug>false</debug>
 
 		<!--项目引用到的外部代码-->
 		<source-path append="true">
