@@ -74,7 +74,7 @@
 				var stream:FileStream = new FileStream();
 				
 				var bytes:ByteArray;
-				var queue:Vector.<FileItem> = new Vector.<FileItem>();
+				var queue:Vector.<Object> = new Vector.<Object>();
 				
 				for each(var file:File in list)
 				{
@@ -86,7 +86,7 @@
 						stream.readBytes(bytes);
 						stream.close();
 						
-						queue.push(new FileItem(file, bytes));
+						queue.push({file:file, bytes:bytes});
 					}
 				}
 				
@@ -97,19 +97,19 @@
 				
 				var flag:Boolean, i:int;
 				var length:uint = queue.length;
-				var results:Vector.<FileItem> = new Vector.<FileItem>();
+				var results:Vector.<Object> = new Vector.<Object>();
 				for (i = 0; i < length; i++)
 				{
 					flag = true;
 					
-					try
-					{
+//					try
+//					{
 						_wrapper.addFile(queue[i]);
-					}
-					catch (err:Error)
-					{
-						flag = false;
-					}
+//					}
+//					catch (err:Error)
+//					{
+//						flag = false;
+//					}
 					
 					goto(100 * 0.4 * (i + 1) / length);
 					
@@ -134,7 +134,7 @@
 				length = results.length;
 				if (length == 0) goto(100);
 				
-				var item:FileItem;
+				var item:Object;
 				for (i = 0; i < length; i++)
 				{
 					item = results[i];

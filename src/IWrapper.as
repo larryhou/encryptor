@@ -11,9 +11,9 @@ package
 	public interface IWrapper
 	{
 		function reset():void;
-		function addFile(item:FileItem):void;
+		function addFile(item:Object):void;
 		function encrypt():XML;
 		
-		function repack(item:FileItem):ByteArray;
+		function repack(item:Object):ByteArray;
 	}
 }

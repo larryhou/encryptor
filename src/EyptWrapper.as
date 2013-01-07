@@ -14,7 +14,6 @@ package
 	 */
 	public class EyptWrapper extends Sprite implements IWrapper
 	{
-		private var _queue:Vector.<FileItem>;
 		private var _encryptor:FileEncryptor;
 		private var _dict:Dictionary;
 		
@@ -29,16 +28,13 @@ package
 		
 		public function reset():void
 		{
-			_queue = new Vector.<FileItem>;
 			_encryptor = new FileEncryptor();
 			_dict = new Dictionary(true);
 		}
 		
-		public function addFile(item:FileItem):void
+		public function addFile(item:Object):void
 		{
-			_queue.push(item);
-			_dict[item] = new SWFile(item.bytes);
-			
+			_dict[item] = new SWFile(item.bytes as ByteArray);
 			_encryptor.addFile(_dict[item]);
 		}
 		
@@ -47,7 +43,7 @@ package
 			return _encryptor.encrypt();
 		}
 		
-		public function repack(item:FileItem):ByteArray
+		public function repack(item:Object):ByteArray
 		{
 			var swf:SWFile = _dict[item];
 			if (swf) return swf.repack();
