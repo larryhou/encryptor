@@ -30,6 +30,8 @@
 			/* listen to user dragging */
 			protected function appReadyHandler(e:FlexEvent):void
 			{
+				//_wrapper = new EyptWrapper()
+				
 				var loader:Loader = new Loader();
 				loader.contentLoaderInfo.addEventListener(Event.COMPLETE, completeHandler);
 				
